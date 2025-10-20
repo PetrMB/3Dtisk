@@ -275,6 +275,42 @@
                 </h1>
                 <p class="subtitle">Bambulab P1S</p>
             </div>
+            
+            <!-- Sekce pro tisk -->
+            <div class="print-info">
+                <div style="margin-bottom: 15px;">
+                    <strong style="font-size: 18px;">Projekt: <span id="print-project-name"></span></strong>
+                    <div style="color: #6b7280; font-size: 12px; margin-top: 5px;">Datum: <span id="print-date"></span></div>
+                </div>
+                
+                <div class="print-section">
+                    <h3>Parametry tisku</h3>
+                    <div class="print-param">
+                        <span>Typ filamentu:</span>
+                        <strong id="print-filament-type"></strong>
+                    </div>
+                    <div class="print-param">
+                        <span>Cena filamentu:</span>
+                        <strong id="print-filament-price"></strong>
+                    </div>
+                    <div class="print-param">
+                        <span>Gramáž filamentu:</span>
+                        <strong id="print-filament-weight"></strong>
+                    </div>
+                    <div class="print-param">
+                        <span>Počet dílů:</span>
+                        <strong id="print-parts-count"></strong>
+                    </div>
+                    <div class="print-param">
+                        <span>Handling poplatek za díl:</span>
+                        <strong id="print-handling-fee"></strong>
+                    </div>
+                    <div class="print-param">
+                        <span>Doba tisku:</span>
+                        <strong id="print-time"></strong>
+                    </div>
+                </div>
+            </div>
 
             <div class="form-group">
                 <label>Název projektu</label>
@@ -373,7 +409,7 @@
             const partsCount = parseInt(document.getElementById('parts-count').value) || 1;
             const handlingFee = parseFloat(document.getElementById('handling-fee').value) || 0;
             const printTime = parseFloat(document.getElementById('print-time').value) || 0;
-            const electricityPrice = 6; // Fixní cena elektřiny v ČR
+            const electricityPrice = 6;
 
             const filamentCost = (filamentWeight / 1000) * filamentPrice;
             const handlingCost = handlingFee * partsCount;
@@ -390,11 +426,7 @@
         }
         
         function generatePDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            // Získání hodnot
-            const projectName = document.getElementById('project-name').value || 'Projekt';
+            const projectName = document.getElementById('project-name').value || 'Můj 3D tisk';
             const filamentType = document.getElementById('filament-type').value;
             const filamentPrice = document.getElementById('filament-price').value;
             const filamentWeight = document.getElementById('filament-weight').value;
@@ -408,85 +440,165 @@
             const costTotal = document.getElementById('cost-total').textContent;
             const totalKwh = document.getElementById('total-kwh').textContent;
             
-            // Nastavení fontu
-            doc.setFont("helvetica");
-            
-            // Hlavička
-            doc.setFontSize(20);
-            doc.setTextColor(37, 99, 235);
-            doc.text('Kalkulace nákladů 3D tisku', 20, 20);
-            
-            doc.setFontSize(12);
-            doc.setTextColor(100, 100, 100);
-            doc.text('Bambulab P1S', 20, 28);
-            
-            // Název projektu
-            doc.setFontSize(16);
-            doc.setTextColor(0, 0, 0);
-            doc.text('Projekt: ' + projectName, 20, 45);
-            
-            // Datum
-            doc.setFontSize(10);
-            doc.setTextColor(100, 100, 100);
             const today = new Date().toLocaleDateString('cs-CZ');
-            doc.text('Datum: ' + today, 20, 52);
             
-            // Parametry tisku
-            doc.setFontSize(14);
-            doc.setTextColor(0, 0, 0);
-            doc.text('Parametry tisku', 20, 65);
+            const printContent = `<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>${projectName} - Kalkulace 3D tisku</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            color: #333;
+        }
+        .header {
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        .header h1 {
+            font-size: 28px;
+            margin: 0 0 5px 0;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+        .project-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 30px 0 5px 0;
+        }
+        .date {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin: 30px 0;
+        }
+        .section h2 {
+            font-size: 18px;
+            border-bottom: 2px solid #2563eb;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        .param-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .total-section {
+            background: #2563eb;
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        .total-label {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .total-value {
+            font-size: 48px;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 12px;
+            color: #666;
+        }
+        .footer div {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Kalkulace nákladů 3D tisku</h1>
+        <div class="subtitle">Bambulab P1S</div>
+    </div>
+    
+    <div class="project-title">Projekt: ${projectName}</div>
+    <div class="date">Datum: ${today}</div>
+    
+    <div class="section">
+        <h2>Parametry tisku</h2>
+        <div class="param-row">
+            <span>Typ filamentu:</span>
+            <strong>${filamentType}</strong>
+        </div>
+        <div class="param-row">
+            <span>Cena filamentu:</span>
+            <strong>${filamentPrice} Kč/kg</strong>
+        </div>
+        <div class="param-row">
+            <span>Gramáž filamentu:</span>
+            <strong>${filamentWeight} g</strong>
+        </div>
+        <div class="param-row">
+            <span>Počet dílů:</span>
+            <strong>${partsCount}</strong>
+        </div>
+        <div class="param-row">
+            <span>Handling poplatek za díl:</span>
+            <strong>${handlingFee} Kč</strong>
+        </div>
+        <div class="param-row">
+            <span>Doba tisku:</span>
+            <strong>${printTime} hodin</strong>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>Rozpis nákladů</h2>
+        <div class="param-row">
+            <span>Náklady na filament:</span>
+            <strong>${costFilament}</strong>
+        </div>
+        <div class="param-row">
+            <span>Handling poplatek:</span>
+            <strong>${costHandling}</strong>
+        </div>
+        <div class="param-row">
+            <span>Náklady na elektřinu:</span>
+            <strong>${costElectricity}</strong>
+        </div>
+    </div>
+    
+    <div class="total-section">
+        <div class="total-label">CELKOVÉ NÁKLADY</div>
+        <div class="total-value">${costTotal}</div>
+    </div>
+    
+    <div class="footer">
+        <div>Spotřeba tiskárny: 350W (průměr při tisku)</div>
+        <div>Cena elektřiny: 6 Kč/kWh</div>
+        <div>Celková spotřeba: ${totalKwh}</div>
+        <div style="margin-top: 10px; font-style: italic;">* Všechny ceny jsou zaokrouhleny na celé koruny</div>
+    </div>
+    
+    <script>
+        window.onload = function() {
+            window.print();
+        }
+    <\/script>
+</body>
+</html>`;
             
-            doc.setFontSize(11);
-            let y = 75;
-            doc.text('Typ filamentu: ' + filamentType, 25, y);
-            doc.text('Cena filamentu: ' + filamentPrice + ' Kč/kg', 25, y + 7);
-            doc.text('Gramáž filamentu: ' + filamentWeight + ' g', 25, y + 14);
-            doc.text('Počet dílů: ' + partsCount, 25, y + 21);
-            doc.text('Handling poplatek za díl: ' + handlingFee + ' Kč', 25, y + 28);
-            doc.text('Doba tisku: ' + printTime + ' hodin', 25, y + 35);
-            
-            // Rozpis nákladů
-            y = 130;
-            doc.setFontSize(14);
-            doc.text('Rozpis nákladů', 20, y);
-            
-            doc.setFontSize(11);
-            y += 10;
-            doc.text('Náklady na filament:', 25, y);
-            doc.text(costFilament, 150, y, { align: 'right' });
-            
-            y += 7;
-            doc.text('Handling poplatek:', 25, y);
-            doc.text(costHandling, 150, y, { align: 'right' });
-            
-            y += 7;
-            doc.text('Náklady na elektřinu:', 25, y);
-            doc.text(costElectricity, 150, y, { align: 'right' });
-            
-            // Čára
-            y += 10;
-            doc.setLineWidth(0.5);
-            doc.line(25, y, 150, y);
-            
-            // Celková cena
-            y += 8;
-            doc.setFontSize(16);
-            doc.setTextColor(37, 99, 235);
-            doc.text('CELKOVÉ NÁKLADY:', 25, y);
-            doc.text(costTotal, 150, y, { align: 'right' });
-            
-            // Dodatečné informace
-            y += 15;
-            doc.setFontSize(9);
-            doc.setTextColor(100, 100, 100);
-            doc.text('Spotřeba tiskárny: 350W (průměr při tisku)', 25, y);
-            doc.text('Cena elektřiny: 6 Kč/kWh', 25, y + 5);
-            doc.text('Celková spotřeba: ' + totalKwh, 25, y + 10);
-            doc.text('* Všechny ceny jsou zaokrouhleny na celé koruny', 25, y + 15);
-            
-            // Uložení
-            const fileName = projectName.replace(/[^a-z0-9]/gi, '_') + '_kalkulace.pdf';
-            doc.save(fileName);
+            const printWindow = window.open('', '_blank');
+            if (printWindow) {
+                printWindow.document.write(printContent);
+                printWindow.document.close();
+            } else {
+                alert('Prosím povolte vyskakovací okna pro export PDF');
+            }
         }
 
         calculate();
