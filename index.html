@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulačka nákladů 3D tisku</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 40px auto;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            padding: 40px;
+        }
+        
+        .header {
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .header-icon {
+            width: 28px;
+            height: 28px;
+            color: #2563eb;
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            color: #6b7280;
+            margin-top: 5px;
+            margin-left: 38px;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+            background: white;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+        
+        .results {
+            margin-top: 32px;
+            background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+            border-radius: 12px;
+            padding: 24px;
+            border: 2px solid #bfdbfe;
+        }
+        
+        .results h2 {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 20px;
+        }
+        
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            color: #374151;
+        }
+        
+        .result-label {
+            font-size: 15px;
+        }
+        
+        .result-value {
+            font-weight: 600;
+            color: #111827;
+        }
+        
+        .total-section {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 2px solid #93c5fd;
+        }
+        
+        .total-box {
+            background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+        
+        .total-label {
+            font-size: 24px;
+            font-weight: 900;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+        
+        .total-value {
+            font-size: 64px;
+            font-weight: 900;
+            color: white;
+            text-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .info-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #93c5fd;
+            font-size: 13px;
+            color: #4b5563;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 4px;
+        }
+        
+        .info-row span:last-child {
+            font-weight: 500;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 24px;
+            color: #9ca3af;
+            font-size: 13px;
+        }
+        
+        .pdf-button {
+            width: 100%;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 24px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 24px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .pdf-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+        }
+        
+        .pdf-button:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h1>
+                    <svg class="header-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                    </svg>
+                    Kalkulačka nákladů 3D tisku
+                </h1>
+                <p class="subtitle">Bambulab P1S</p>
+            </div>
+
+            <div class="form-group">
+                <label>Název projektu</label>
+                <input type="text" id="project-name" value="Můj 3D tisk" placeholder="Zadejte název projektu...">
+            </div>
+
+            <div class="form-group">
+                <label>Typ filamentu</label>
+                <select id="filament-type" onchange="calculate()">
+                    <option value="PLA">PLA</option>
+                    <option value="PETG">PETG</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Cena filamentu (Kč/kg)</label>
+                <input type="number" id="filament-price" value="450" min="0" step="10" oninput="calculate()">
+            </div>
+
+            <div class="form-group">
+                <label>Gramáž filamentu (g)</label>
+                <input type="number" id="filament-weight" value="100" min="0" step="1" oninput="calculate()">
+            </div>
+
+            <div class="form-group">
+                <label>Počet dílů</label>
+                <input type="number" id="parts-count" value="1" min="1" step="1" oninput="calculate()">
+            </div>
+
+            <div class="form-group">
+                <label>Handling poplatek za díl (Kč)</label>
+                <input type="number" id="handling-fee" value="20" min="0" step="5" oninput="calculate()">
+            </div>
+
+            <div class="form-group">
+                <label>Doba tisku (hodiny)</label>
+                <input type="number" id="print-time" value="5" min="0" step="0.5" oninput="calculate()">
+            </div>
+
+            <div class="results">
+                <h2>Rozpis nákladů</h2>
+                
+                <div class="result-row">
+                    <span class="result-label">Náklady na filament:</span>
+                    <span class="result-value" id="cost-filament">0 Kč</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Handling poplatek:</span>
+                    <span class="result-value" id="cost-handling">0 Kč</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Náklady na elektřinu:</span>
+                    <span class="result-value" id="cost-electricity">0 Kč</span>
+                </div>
+                
+                <div class="total-section">
+                    <div class="total-box">
+                        <div class="total-label">Celkové náklady</div>
+                        <div class="total-value" id="cost-total">0 Kč</div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <div class="info-row">
+                        <span>Spotřeba tiskárny:</span>
+                        <span>350W (průměr při tisku)</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Cena elektřiny:</span>
+                        <span>6 Kč/kWh</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Celková spotřeba:</span>
+                        <span id="total-kwh">0 kWh</span>
+                    </div>
+                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #93c5fd; font-style: italic; color: #6b7280; font-size: 12px;">
+                        * Všechny ceny jsou zaokrouhleny na celé koruny
+                    </div>
+                </div>
+            </div>
+            
+            <button class="pdf-button" onclick="generatePDF()">
+                📄 Stáhnout nabídku jako PDF
+            </button>
+        </div>
+
+        <div class="footer">
+            <p>Spotřeba tiskárny Bambulab P1S je přibližně 350W při aktivním tisku</p>
+        </div>
+    </div>
+
+    <script>
+        function calculate() {
+            const filamentPrice = parseFloat(document.getElementById('filament-price').value) || 0;
+            const filamentWeight = parseFloat(document.getElementById('filament-weight').value) || 0;
+            const partsCount = parseInt(document.getElementById('parts-count').value) || 1;
+            const handlingFee = parseFloat(document.getElementById('handling-fee').value) || 0;
+            const printTime = parseFloat(document.getElementById('print-time').value) || 0;
+            const electricityPrice = 6; // Fixní cena elektřiny v ČR
+
+            const filamentCost = (filamentWeight / 1000) * filamentPrice;
+            const handlingCost = handlingFee * partsCount;
+            const powerConsumption = 0.35;
+            const totalKwh = powerConsumption * printTime;
+            const electricityCost = totalKwh * electricityPrice;
+            const totalCost = filamentCost + handlingCost + electricityCost;
+
+            document.getElementById('cost-filament').textContent = Math.round(filamentCost) + ' Kč';
+            document.getElementById('cost-handling').textContent = Math.round(handlingCost) + ' Kč';
+            document.getElementById('cost-electricity').textContent = Math.round(electricityCost) + ' Kč';
+            document.getElementById('cost-total').textContent = Math.round(totalCost) + ' Kč';
+            document.getElementById('total-kwh').textContent = totalKwh.toFixed(2) + ' kWh';
+        }
+        
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Získání hodnot
+            const projectName = document.getElementById('project-name').value || 'Projekt';
+            const filamentType = document.getElementById('filament-type').value;
+            const filamentPrice = document.getElementById('filament-price').value;
+            const filamentWeight = document.getElementById('filament-weight').value;
+            const partsCount = document.getElementById('parts-count').value;
+            const handlingFee = document.getElementById('handling-fee').value;
+            const printTime = document.getElementById('print-time').value;
+            
+            const costFilament = document.getElementById('cost-filament').textContent;
+            const costHandling = document.getElementById('cost-handling').textContent;
+            const costElectricity = document.getElementById('cost-electricity').textContent;
+            const costTotal = document.getElementById('cost-total').textContent;
+            const totalKwh = document.getElementById('total-kwh').textContent;
+            
+            // Nastavení fontu
+            doc.setFont("helvetica");
+            
+            // Hlavička
+            doc.setFontSize(20);
+            doc.setTextColor(37, 99, 235);
+            doc.text('Kalkulace nákladů 3D tisku', 20, 20);
+            
+            doc.setFontSize(12);
+            doc.setTextColor(100, 100, 100);
+            doc.text('Bambulab P1S', 20, 28);
+            
+            // Název projektu
+            doc.setFontSize(16);
+            doc.setTextColor(0, 0, 0);
+            doc.text('Projekt: ' + projectName, 20, 45);
+            
+            // Datum
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            const today = new Date().toLocaleDateString('cs-CZ');
+            doc.text('Datum: ' + today, 20, 52);
+            
+            // Parametry tisku
+            doc.setFontSize(14);
+            doc.setTextColor(0, 0, 0);
+            doc.text('Parametry tisku', 20, 65);
+            
+            doc.setFontSize(11);
+            let y = 75;
+            doc.text('Typ filamentu: ' + filamentType, 25, y);
+            doc.text('Cena filamentu: ' + filamentPrice + ' Kč/kg', 25, y + 7);
+            doc.text('Gramáž filamentu: ' + filamentWeight + ' g', 25, y + 14);
+            doc.text('Počet dílů: ' + partsCount, 25, y + 21);
+            doc.text('Handling poplatek za díl: ' + handlingFee + ' Kč', 25, y + 28);
+            doc.text('Doba tisku: ' + printTime + ' hodin', 25, y + 35);
+            
+            // Rozpis nákladů
+            y = 130;
+            doc.setFontSize(14);
+            doc.text('Rozpis nákladů', 20, y);
+            
+            doc.setFontSize(11);
+            y += 10;
+            doc.text('Náklady na filament:', 25, y);
+            doc.text(costFilament, 150, y, { align: 'right' });
+            
+            y += 7;
+            doc.text('Handling poplatek:', 25, y);
+            doc.text(costHandling, 150, y, { align: 'right' });
+            
+            y += 7;
+            doc.text('Náklady na elektřinu:', 25, y);
+            doc.text(costElectricity, 150, y, { align: 'right' });
+            
+            // Čára
+            y += 10;
+            doc.setLineWidth(0.5);
+            doc.line(25, y, 150, y);
+            
+            // Celková cena
+            y += 8;
+            doc.setFontSize(16);
+            doc.setTextColor(37, 99, 235);
+            doc.text('CELKOVÉ NÁKLADY:', 25, y);
+            doc.text(costTotal, 150, y, { align: 'right' });
+            
+            // Dodatečné informace
+            y += 15;
+            doc.setFontSize(9);
+            doc.setTextColor(100, 100, 100);
+            doc.text('Spotřeba tiskárny: 350W (průměr při tisku)', 25, y);
+            doc.text('Cena elektřiny: 6 Kč/kWh', 25, y + 5);
+            doc.text('Celková spotřeba: ' + totalKwh, 25, y + 10);
+            doc.text('* Všechny ceny jsou zaokrouhleny na celé koruny', 25, y + 15);
+            
+            // Uložení
+            const fileName = projectName.replace(/[^a-z0-9]/gi, '_') + '_kalkulace.pdf';
+            doc.save(fileName);
+        }
+
+        calculate();
+    </script>
+</body>
+</html>
