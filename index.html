@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kalkulačka nákladů 3D tisku</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -193,6 +192,74 @@
         
         .pdf-button:active {
             transform: translateY(0);
+        }
+        
+        /* Styly pro tisk */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .container {
+                max-width: 100%;
+                margin: 0;
+            }
+            
+            .card {
+                box-shadow: none;
+                padding: 20px;
+            }
+            
+            .form-group, .pdf-button, .footer {
+                display: none;
+            }
+            
+            .header {
+                margin-bottom: 20px;
+            }
+            
+            .results {
+                page-break-inside: avoid;
+            }
+            
+            .total-box {
+                background: #2563eb !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+        
+        .print-info {
+            display: none;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f3f4f6;
+            border-radius: 8px;
+        }
+        
+        @media print {
+            .print-info {
+                display: block;
+            }
+        }
+        
+        .print-section {
+            margin-bottom: 20px;
+        }
+        
+        .print-section h3 {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+        
+        .print-param {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-size: 14px;
         }
     </style>
 </head>
